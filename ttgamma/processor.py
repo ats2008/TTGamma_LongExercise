@@ -83,7 +83,7 @@ class TTGammaProcessor(processor.ProcessorABC):
 
         m3_axis = hist.Bin("M3", r"$M_3$ [GeV]", 200, 0., 1000)
         mass_axis = hist.Bin("mass", r"$m_{\ell\gamma}$ [GeV]", 400, 0., 400)
-        pt_axis = hist.Bin("pt", r"$p_{T}$ [GeV]", 200, 0., 1000)
+        pt_axis = hist.Bin("pt", r"$p_{T}$ [GeV]", 200, 0., 300)
         eta_axis = hist.Bin("eta", r"$\eta_{\gamma}$", 300, -1.5, 1.5)
         chIso_axis = hist.Bin("chIso", r"Charged Hadron Isolation", np.arange(-0.1,20.001,.05))
 
@@ -101,9 +101,10 @@ class TTGammaProcessor(processor.ProcessorABC):
 
             # 3. ADD HISTOGRAMS
             ## book histograms for photon pt, eta, and charged hadron isolation
-            #'photon_pt':
-            #'photon_eta':
-            #'photon_chIso':
+            'photon_pt' : hist.Hist("$\gamma$-Counts",phoCategory_axis, pt_axis),
+            'photon_eta':hist.Hist("$\gamma$-Counts",phoCategory_axis, eta_axis),
+            'photon_chIso':hist.Hist("$\gamma$-Counts",phoCategory_axis, chIso_axis),
+            
 
             ## book histogram for photon/lepton mass in a 3j0t region
             #'photon_lepton_mass_3j0t':
@@ -216,7 +217,7 @@ class TTGammaProcessor(processor.ProcessorABC):
         else:
             passOverlapRemoval = np.ones_like(len(events))==1
             
-        """
+        
         ##################
         # OBJECT SELECTION
         ##################
@@ -226,10 +227,11 @@ class TTGammaProcessor(processor.ProcessorABC):
 
         #select tight muons
         # tight muons should have a pt of at least 30 GeV, |eta| < 2.4, pass the tight muon ID cut (tightID variable), and have a relative isolation of less than 0.15
-        muonSelectTight = ((?) & 
-                           (?) & 
-                           (?) & 
-                           (?)
+        events.Muon = events.Muon
+	muonSelectTight = ((events.Muon.pt >30.0) & 
+                           (abs(events.Muon.eta)<2.4) & 
+   			   (events.Muon.tightID) & 
+                           (events.Muon.pfRelIso04_all<0.15)
                           )
 
         #select loose muons        
@@ -254,12 +256,13 @@ class TTGammaProcessor(processor.ProcessorABC):
         # 1. ADD SELECTION
         #select tight electrons
         # tight electrons should have a pt of at least 35 GeV, |eta| < 2.1, pass the cut based electron id (cutBased variable in NanoAOD>=4), and pass the etaGap, D0, and DZ cuts defined above
-        electronSelectTight = ((?) & 
-                               (?) & 
-                               ? &      
-                               (?) &
-                               ? &
-                               ? &
+        events.Electron = events.Electron
+	electronSelectTight = ((events.Electron.pt>35) & 
+                               (abs(events.Electron.eta)<2.1) & 
+                               eleEtaGap &      
+                               (events.Electron.cutBased >=4) &
+                               elePassDZ &
+                               elePassDXY &
                               )
 
         #select loose electrons
@@ -275,14 +278,14 @@ class TTGammaProcessor(processor.ProcessorABC):
         # 1. ADD SELECTION
         #  Object selection
         #select the subset of muons passing the muonSelectTight and muonSelectLoose cuts
-        tightMuon = ?
-        looseMuon = ?
+        tightMuon = events.Muon[muonSelectTight]
+        looseMuon = events.Muon[muonSelectLoose]
 
         # 1. ADD SELECTION
         #  Object selection
         #select the subset of electrons passing the electronSelectTight and electronSelectLoose cuts
-        tightElectron = ?
-        looseElectron = ?
+        tightElectron = events.Electron[electronSelectTight]
+        looseElectron = events.Electron[electronSelectLoose]
 
         #### Calculate deltaR between photon and nearest lepton 
         # Remove photons that are within 0.4 of a lepton
@@ -325,10 +328,12 @@ class TTGammaProcessor(processor.ProcessorABC):
 
         # 1. ADD SELECTION
         #  Object selection
-        #select tightPhoton, the subset of photons passing the photonSelect cut and the photonID cut        
-        tightPhoton = ?
-        #select loosePhoton, the subset of photons passing the photonSelect cut and all photonID cuts without the charged hadron isolation cut applied (photonID_NoChIso)
-        loosePhoton = ?
+        
+	#select tightPhoton, the subset of photons passing the photonSelect cut and the photonID cut        
+        tightPhoton = events.Photon[photonSelect & photonID]
+	
+	#select loosePhoton, the subset of photons passing the photonSelect cut and all photonID cuts without the charged hadron isolation cut applied (photonID_NoChIso)
+        loosePhoton = events.Photon[photonSelect & photonID_NoChIso]
         
 
         ####
@@ -371,24 +376,23 @@ class TTGammaProcessor(processor.ProcessorABC):
         # jets should have a pt of at least 30 GeV, |eta| < 2.4, pass the medium jet id (bit-wise selected from the jetID variable), and pass the delta R cuts defined above
         ##medium jet ID cut
         jetIDbit = 1
-
-        jetSelectNoPt = ((?) &
+        jetSelectNoPt = ( (abs(jets.eta)<2.4) &
                          ((jets.jetId >> jetIDbit & 1)==1) &
-                         ? & ? & ? )
+                         jetMuMask & jetEleMask & jetPhoMask )
         
         #Add 30 GeV pt cut
-        jetSelect = jetSelectNoPt & ?
+        jetSelect = jetSelectNoPt & jet.pt>30.0
 
         # 1. ADD SELECTION
         #select the subset of jets passing the jetSelect cuts
-        tightJet = ?
+        tightJet = jets[jetSelect]
 
         # 1. ADD SELECTION
         # select the subset of tightJet which pass the Deep CSV tagger
         bTagWP = 0.6321   #2016 DeepCSV working point
         btagged = tightJet.btagDeepB>bTagWP  
-        bTaggedJet= ?
-        """
+        bTaggedJet= jets[btagged]
+        
 
         #####################
         # EVENT SELECTION
@@ -704,7 +708,7 @@ class TTGammaProcessor(processor.ProcessorABC):
         ###################
         # PART 3: Uncomment to add histograms
 
-        """
+        
         systList = ['noweight','nominal']
 
         # PART 4: SYSTEMATICS
@@ -718,10 +722,10 @@ class TTGammaProcessor(processor.ProcessorABC):
             systList = ['noweight']
 
         #Fill temp hist for testing purposes
-#        output['all_photon_pt'].fill(dataset=dataset,
-#                                     pt=ak.flatten(tightPhoton.pt[:,:1]))
+        output['all_photon_pt'].fill(dataset=dataset,
+                                     pt=ak.flatten(tightPhoton.pt[:,:1]))
 
-        
+        """
         for syst in systList:
 
             #find the event weight to be used when filling the histograms    
