@@ -82,7 +82,7 @@ class TTGammaProcessor(processor.ProcessorABC):
 
         m3_axis = hist.Bin("M3", r"$M_3$ [GeV]", 200, 0., 1000)
         mass_axis = hist.Bin("mass", r"$m_{\ell\gamma}$ [GeV]", 400, 0., 400)
-        pt_axis = hist.Bin("pt", r"$p_{T}$ [GeV]", 200, 0., 300)
+        pt_axis = hist.Bin("pt", r"$p_{T}$ [GeV]", 200, 0., 1000.0)
         eta_axis = hist.Bin("eta", r"$\eta_{\gamma}$", 300, -1.5, 1.5)
         chIso_axis = hist.Bin("chIso", r"Charged Hadron Isolation", np.arange(-0.1,20.001,.05))
 
@@ -475,7 +475,7 @@ class TTGammaProcessor(processor.ProcessorABC):
         selection.add('onePho',  photon1Tight_eventSelection)
 
         # add selection for events with exactly 1 loose photon
-        photon1loose_eventSelection = (ak.num(loosePhoton)==0)
+        photon1loose_eventSelection = (ak.num(loosePhoton)==1)
         selection.add('loosePho', photon1loose_eventSelection)
 
         ##################
@@ -595,7 +595,7 @@ class TTGammaProcessor(processor.ProcessorABC):
             #weights.add('lumiWeight',lumiWeight)
 
             # PART 4: Uncomment to add weights and systematics
-            """
+            """      
             # 4. SYSTEMATICS
             # calculate pileup weights and variations
             # use the puLookup, puLookup_Up, and puLookup_Down lookup functions to find the nominal and up/down systematic weights
@@ -605,12 +605,12 @@ class TTGammaProcessor(processor.ProcessorABC):
                 print("WARNING : Using TTGamma_SingleLept_2016 pileup distribution instead of {}".format(datasetFull))
                 datasetFull = "TTGamma_SingleLept_2016"
 
-            puWeight = ?
-            puWeight_Up = ?
-            puWeight_Down = ?
+            puWeight = puLookup[datasetFull](events.Pileup.nTrueInt)
+            puWeight_Up =  puLookup_Up[datasetFull](events.Pileup.nTrueInt)
+            puWeight_Down = puLookup_Down[datasetFull](events.Pileup.nTrueInt)
 
             # add the puWeight and it's uncertainties to the weights container
-            weights.add('puWeight',weight=?, weightUp=?, weightDown=?)
+            weights.add('puWeight',weight=puWeight , weightUp=puWeight_Up, weightDown=puWeight_Down)
 
             #btag key name
             #name / working Point / type / systematic / jetType
@@ -710,8 +710,7 @@ class TTGammaProcessor(processor.ProcessorABC):
 
                 weights.add('ISR',weight=np.ones(len(events)), weightUp=psWeights[:,2], weightDown=psWeights[:,0])
                 weights.add('FSR',weight=np.ones(len(events)), weightUp=psWeights[:,3], weightDown=psWeights[:,1])
-            """
-
+        """
         ###################
         # FILL HISTOGRAMS
         ###################
@@ -783,12 +782,12 @@ class TTGammaProcessor(processor.ProcessorABC):
                                           weight=evtWeight[phosel])
                 
                 #    fill photon_chIso histogram, using the loosePhotons array (photons passing all cuts, except the charged hadron isolation cuts)
-    #            output['photon_chIso'].fill(dataset=dataset,
-    #                                        chIso=ak.flatten(loosePhoton[phoselLoose].chIso),
-    #                                        category=phoCategory[phoselLoose],
-    #                                        lepFlavor=lepton,
-    #                                        systematic=syst,
-    #                                        weight=evtWeight[phoselLoose])
+                output['photon_chIso'].fill(dataset=dataset,
+                                            chIso=ak.flatten(loosePhoton[phoselLoose].chIso,-1),
+                                            category=phoCategory[phoselLoose],
+                                            lepFlavor=lepton,
+                                            systematic=syst)#,
+                                        #    weight=evtWeight[phoselLoose])
                 
                 #    fill M3 histogram, for events passing the phosel selection
                 # Note that for M3, ak.fill_none() is also needed so there is at least one entry per event
