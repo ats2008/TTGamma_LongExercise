@@ -421,16 +421,16 @@ class TTGammaProcessor(processor.ProcessorABC):
         #  Event selection
  
         #oneEle should be true if there is exactly one tight electron in the event
-        oneEle  = ?
+        oneEle  = (ak.num(tightElectron)==1)
 
         #eleVeto should be true if there are no tight electrons in the event
-        eleVeto = ?
+        eleVeto = (ak.num(tightElectron)==0)
 
         # 1. ADD SELECTION
         #  Event selection
         #looseMuonVeto and looseElectronVeto should be true if there are 0 loose muons or electrons in the event
-        looseMuonVeto = ?
-        looseElectronVeto = ?
+        looseMuonVeto = (ak.num(looseMuon)==0)
+        looseElectronVeto = (ak.num(looseElectron)==0)
 
         # 1. ADD SELECTION
         # muon selection, requires events to pass:   muon trigger
