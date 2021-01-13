@@ -398,23 +398,24 @@ class TTGammaProcessor(processor.ProcessorABC):
         # EVENT SELECTION
         #####################
         ### PART 1B: Uncomment to add event selection
-        """
+        
         # 1. ADD SELECTION
         ## apply triggers
         # muon events should be triggered by either the HLT_IsoMu24 or HLT_IsoTkMu24 triggers
         # electron events should be triggered by HLT_Ele27_WPTight_Gsf trigger
         # HINT: trigger values can be accessed with the variable events.HLT.TRIGGERNAME, 
         # the bitwise or operator can be used to select multiple triggers events.HLT.TRIGGER1 | events.HLT.TRIGGER2
-        muTrigger  = ?
-        eleTrigger = ?
+        
+        muTrigger  = events.HLT.HLT_IsoTkMu24 | events.HLT.HLT_IsoMu24
+        eleTrigger = events.HLT.HLT_Ele27_WPTight_Gsf
 
         # 1. ADD SELECTION
         #  Event selection
         #oneMuon, should be true if there is exactly one tight muon in the event 
         # (hint, the ak.num() method returns the number of objects in each row of a jagged array)
-        oneMuon = ?
+        oneMuon = (ak.num(tightMuon)==1)
         #muVeto, should be true if there are no tight muons in the event
-        muVeto  = ?
+        muVeto  = (ak.num(tightMuon)==0)
 
         # 1. ADD SELECTION
         #  Event selection
