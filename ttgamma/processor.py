@@ -228,9 +228,9 @@ class TTGammaProcessor(processor.ProcessorABC):
         #select tight muons
         # tight muons should have a pt of at least 30 GeV, |eta| < 2.4, pass the tight muon ID cut (tightID variable), and have a relative isolation of less than 0.15
         events.Muon = events.Muon
-	muonSelectTight = ((events.Muon.pt >30.0) & 
+        muonSelectTight = ((events.Muon.pt >30.0) & 
                            (abs(events.Muon.eta)<2.4) & 
-   			   (events.Muon.tightID) & 
+                              (events.Muon.tightId) & 
                            (events.Muon.pfRelIso04_all<0.15)
                           )
 
@@ -257,12 +257,12 @@ class TTGammaProcessor(processor.ProcessorABC):
         #select tight electrons
         # tight electrons should have a pt of at least 35 GeV, |eta| < 2.1, pass the cut based electron id (cutBased variable in NanoAOD>=4), and pass the etaGap, D0, and DZ cuts defined above
         events.Electron = events.Electron
-	electronSelectTight = ((events.Electron.pt>35) & 
+        electronSelectTight = ((events.Electron.pt>35) & 
                                (abs(events.Electron.eta)<2.1) & 
                                eleEtaGap &      
                                (events.Electron.cutBased >=4) &
                                elePassDZ &
-                               elePassDXY &
+                               elePassDXY 
                               )
 
         #select loose electrons
@@ -329,10 +329,10 @@ class TTGammaProcessor(processor.ProcessorABC):
         # 1. ADD SELECTION
         #  Object selection
         
-	#select tightPhoton, the subset of photons passing the photonSelect cut and the photonID cut        
+        #select tightPhoton, the subset of photons passing the photonSelect cut and the photonID cut        
         tightPhoton = events.Photon[photonSelect & photonID]
-	
-	#select loosePhoton, the subset of photons passing the photonSelect cut and all photonID cuts without the charged hadron isolation cut applied (photonID_NoChIso)
+        
+        #select loosePhoton, the subset of photons passing the photonSelect cut and all photonID cuts without the charged hadron isolation cut applied (photonID_NoChIso)
         loosePhoton = events.Photon[photonSelect & photonID_NoChIso]
         
 
@@ -381,7 +381,7 @@ class TTGammaProcessor(processor.ProcessorABC):
                          jetMuMask & jetEleMask & jetPhoMask )
         
         #Add 30 GeV pt cut
-        jetSelect = jetSelectNoPt & jet.pt>30.0
+        jetSelect = jetSelectNoPt & ( jets.pt>30.0)
 
         # 1. ADD SELECTION
         #select the subset of jets passing the jetSelect cuts
