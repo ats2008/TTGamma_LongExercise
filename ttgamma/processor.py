@@ -786,8 +786,8 @@ class TTGammaProcessor(processor.ProcessorABC):
                                             chIso=ak.flatten(loosePhoton[phoselLoose].chIso,-1),
                                             category=phoCategory[phoselLoose],
                                             lepFlavor=lepton,
-                                            systematic=syst)#,
-                                        #    weight=evtWeight[phoselLoose])
+                                            systematic=syst,
+                                            weight=evtWeight[phoselLoose])
                 
                 #    fill M3 histogram, for events passing the phosel selection
                 # Note that for M3, ak.fill_none() is also needed so there is at least one entry per event
@@ -810,14 +810,14 @@ class TTGammaProcessor(processor.ProcessorABC):
                                                    mass=ak.flatten(egammaMass[phosel_3j0t_e]),
                                                    category=phosel[phosel_3j0t_e],
                                                    lepFlavor='electron',
-                                                   systematic=syst)#,
-                                                  # weight=evtWeight[phosel_3j0t_e])
+                                                   systematic=syst,
+                                                   weight=evtWeight[phosel_3j0t_e])
             output['photon_lepton_mass_3j0t'].fill(dataset=dataset,
                                                    mass=ak.flatten(mugammaMass[phosel_3j0t_mu]),
                                                    category=phoCategory[phosel_3j0t_mu],
                                                    lepFlavor='muon',
-                                                   systematic=syst)#,
-                                                #   weight=evtWeight[phosel_3j0t_mu])
+                                                   systematic=syst,
+                                                   weight=evtWeight[phosel_3j0t_mu])
 
         return output
 
