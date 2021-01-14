@@ -768,14 +768,14 @@ class TTGammaProcessor(processor.ProcessorABC):
                 #    fill photon_pt and photon_eta, using the tightPhotons array, from events passing the phosel selection
         
                 output['photon_pt'].fill(dataset=dataset,
-                                         pt=ak.flatten(tightPhoton[phosel].pt,-1),
+                                         pt=ak.flatten(tightPhoton.pt[:,:1][phosel]),
                                          category=phoCategory[phosel],
                                          lepFlavor=lepton,
                                          systematic=syst,
                                          weight=evtWeight[phosel])           
     
                 output['photon_eta'].fill(dataset=dataset,
-                                          eta=ak.flatten(tightPhoton[phosel].eta,-1),
+                                          eta=ak.flatten(tightPhoton.eta[:,:1][phosel]),
                                           category=phoCategory[phosel],
                                           lepFlavor=lepton,
                                           systematic=syst,
@@ -783,7 +783,7 @@ class TTGammaProcessor(processor.ProcessorABC):
                 
                 #    fill photon_chIso histogram, using the loosePhotons array (photons passing all cuts, except the charged hadron isolation cuts)
                 output['photon_chIso'].fill(dataset=dataset,
-                                            chIso=ak.flatten(loosePhoton[phoselLoose].chIso,-1),
+                                            chIso=ak.flatten(loosePhoton.chIso[:,:1][phoselLoose]),
                                             category=phoCategory[phoselLoose],
                                             lepFlavor=lepton,
                                             systematic=syst,
@@ -808,7 +808,7 @@ class TTGammaProcessor(processor.ProcessorABC):
             #Fill the photon_lepton_mass histogram for events passing phosel_3j0t_e and phosel_3j0t_mu
             output['photon_lepton_mass_3j0t'].fill(dataset=dataset,
                                                    mass=ak.flatten(egammaMass[phosel_3j0t_e]),
-                                                   category=phosel[phosel_3j0t_e],
+                                                   category=phoCategory[phosel_3j0t_e],
                                                    lepFlavor='electron',
                                                    systematic=syst,
                                                    weight=evtWeight[phosel_3j0t_e])
