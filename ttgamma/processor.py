@@ -100,9 +100,9 @@ class TTGammaProcessor(processor.ProcessorABC):
 
             # 3. ADD HISTOGRAMS
             ## book histograms for photon pt, eta, and charged hadron isolation
-            'photon_pt' : hist.Hist("$\gamma$-Counts",phoCategory_axis,lep_axis,systematic_axis, pt_axis, dataset_axis),
-            'photon_eta':hist.Hist("$\gamma$-Counts ",phoCategory_axis,lep_axis,systematic_axis, eta_axis, dataset_axis),
-            'photon_chIso':hist.Hist("$\gamma$-Counts",phoCategory_axis,lep_axis,systematic_axis, chIso_axis, dataset_axis),
+            'photon_pt' : hist.Hist("Counts",phoCategory_axis,lep_axis,systematic_axis, pt_axis, dataset_axis),
+            'photon_eta':hist.Hist("Counts ",phoCategory_axis,lep_axis,systematic_axis, eta_axis, dataset_axis),
+            'photon_chIso':hist.Hist("Counts",phoCategory_axis,lep_axis,systematic_axis, chIso_axis, dataset_axis),
             
 
             ## book histogram for photon/lepton mass in a 3j0t region
