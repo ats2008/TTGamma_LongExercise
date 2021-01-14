@@ -460,10 +460,10 @@ class TTGammaProcessor(processor.ProcessorABC):
         #add two jet selection criteria
         #   First, 'jetSel' which selects events with at least 4 tightJet and at least one bTaggedJet
         nJets = 4
-        jet4jg1t_eventSelection = ( ak.num(tightJet)==4 ) & (ak.num(bTaggedJet) >=1 ) 
+        jet4jg1t_eventSelection = ( ak.num(tightJet)>=nJets ) & (ak.num(bTaggedJet) >=1 ) 
         selection.add('jetSel',   jet4jg1t_eventSelection) 
         #   Second, 'jetSel_3j0t' which selects events with at least 3 tightJet and exactly zero bTaggedJet
-        jet4jg0t_eventSelection = ( ak.num(tightJet)==3 ) & (ak.num(bTaggedJet) ==0 ) 
+        jet4jg0t_eventSelection = ( ak.num(tightJet)>=3 ) & (ak.num(bTaggedJet) ==0 ) 
         selection.add('jetSel_3j0t', jet4jg0t_eventSelection) 
 
         # add selection for events with exactly 0 tight photons
@@ -505,7 +505,7 @@ class TTGammaProcessor(processor.ProcessorABC):
         # 2. DEFINE VARIABLES
 
         # define egammaMass, mass of combinations of tightElectron and leadingPhoton (hint: using the ak.cartesian() method)
-        egammaPairs = ak.cartesian({"electron":tightElectron,"gamma":tightPhoton})
+        egammaPairs = ak.cartesian({"electron":tightElectron,"gamma":leadingPhoton})
         # avoid erros when egammaPairs is empty
         if ak.all(ak.num(egammaPairs)==0):
             egammaMass = np.ones((len(events),1))*-1
@@ -595,7 +595,7 @@ class TTGammaProcessor(processor.ProcessorABC):
             #weights.add('lumiWeight',lumiWeight)
 
             # PART 4: Uncomment to add weights and systematics
-            """      
+            
             # 4. SYSTEMATICS
             # calculate pileup weights and variations
             # use the puLookup, puLookup_Up, and puLookup_Down lookup functions to find the nominal and up/down systematic weights
@@ -654,7 +654,7 @@ class TTGammaProcessor(processor.ProcessorABC):
 
             # 4. SYSTEMATICS
             # add electron efficiency weights to the weight container
-            weights.add('eleEffWeight',weight=?,weightUp=?,weightDown=?)
+            weights.add('eleEffWeight',weight=eleSF,weightUp=eleSF_up,weightDown=eleSF_down)
 
         
             muID = self.mu_id_sf(tightMuon.eta, tightMuon.pt)
@@ -670,7 +670,7 @@ class TTGammaProcessor(processor.ProcessorABC):
 
             # 4. SYSTEMATICS
             # add muon efficiency weights to the weight container
-            weights.add('muEffWeight',weight=?,weightUp=?, weightDown=?)
+            weights.add('muEffWeight',weight=muSF,weightUp=muSF_up, weightDown=muSF_down)
 
 
             #in some samples, generator systematics are not available, in those case the systematic weights of 1. are used
@@ -710,7 +710,7 @@ class TTGammaProcessor(processor.ProcessorABC):
 
                 weights.add('ISR',weight=np.ones(len(events)), weightUp=psWeights[:,2], weightDown=psWeights[:,0])
                 weights.add('FSR',weight=np.ones(len(events)), weightUp=psWeights[:,3], weightDown=psWeights[:,1])
-        """
+       
         ###################
         # FILL HISTOGRAMS
         ###################
@@ -721,12 +721,12 @@ class TTGammaProcessor(processor.ProcessorABC):
 
         # PART 4: SYSTEMATICS
         # uncomment the full list after systematics have been implemented        
-        #systList = ['noweight','nominal','puWeightUp','puWeightDown','muEffWeightUp','muEffWeightDown','eleEffWeightUp','eleEffWeightDown','btagWeightUp','btagWeightDown','ISRUp', 'ISRDown', 'FSRUp', 'FSRDown', 'PDFUp', 'PDFDown', 'Q2ScaleUp', 'Q2ScaleDown']
+        systList = ['noweight','nominal','puWeightUp','puWeightDown','muEffWeightUp','muEffWeightDown','eleEffWeightUp','eleEffWeightDown','btagWeightUp','btagWeightDown','ISRUp', 'ISRDown', 'FSRUp', 'FSRDown', 'PDFUp', 'PDFDown', 'Q2ScaleUp', 'Q2ScaleDown']
         systList = []
         if self.isMC:
             if self.jetSyst == 'nominal':
-               # systList = ['nominal','muEffWeightUp','muEffWeightDown','eleEffWeightUp','eleEffWeightDown','ISRUp', 'ISRDown', 'FSRUp', 'FSRDown', 'PDFUp', 'PDFDown', 'Q2ScaleUp', 'Q2ScaleDown','puWeightUp','puWeightDown','btagWeightUp','btagWeightDown']
-                systList = ["nominal"]
+                systList = ['nominal','muEffWeightUp','muEffWeightDown','eleEffWeightUp','eleEffWeightDown','ISRUp', 'ISRDown', 'FSRUp', 'FSRDown', 'PDFUp', 'PDFDown', 'Q2ScaleUp', 'Q2ScaleDown','puWeightUp','puWeightDown','btagWeightUp','btagWeightDown']
+        #        systList = ["nominal"]
             else:
                 systList=[self.jetSyst]
         else:
