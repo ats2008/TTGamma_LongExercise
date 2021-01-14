@@ -104,7 +104,7 @@ class TTGammaProcessor(processor.ProcessorABC):
             'photon_eta':hist.Hist("Counts ",phoCategory_axis,lep_axis,systematic_axis, eta_axis, dataset_axis),
             'photon_chIso':hist.Hist("Counts",phoCategory_axis,lep_axis,systematic_axis, chIso_axis, dataset_axis),
             
-
+            'photon_lepton_mass'     : hist.Hist("Counts", dataset_axis, mass_axis, phoCategory_axis, lep_axis, systematic_axis),
             ## book histogram for photon/lepton mass in a 3j0t region
             'photon_lepton_mass_3j0t': hist.Hist("(3+1Tag) Jet  Mass",phoCategory_axis,lep_axis,systematic_axis,mass_axis,dataset_axis),
 
@@ -140,7 +140,7 @@ class TTGammaProcessor(processor.ProcessorABC):
         output['EventCount'] = len(events)
 
         dataset = events.metadata['dataset']
-        
+        datasetFull = dataset+'_2016'
         rho = events.fixedGridRhoFastjetAll
 
         #Temporary patch so we can add photon and lepton four vectors. Not needed for newer versions of NanoAOD
@@ -225,7 +225,6 @@ class TTGammaProcessor(processor.ProcessorABC):
 
         #select tight muons
         # tight muons should have a pt of at least 30 GeV, |eta| < 2.4, pass the tight muon ID cut (tightID variable), and have a relative isolation of less than 0.15
-        events.Muon = events.Muon
         muonSelectTight = ((events.Muon.pt >30.0) & 
                            (abs(events.Muon.eta)<2.4) & 
                               (events.Muon.tightId) & 
@@ -717,19 +716,14 @@ class TTGammaProcessor(processor.ProcessorABC):
         # PART 3: Uncomment to add histograms
 
         
-        systList = ['noweight','nominal']
+        #systList = ['noweight','nominal']
 
         # PART 4: SYSTEMATICS
         # uncomment the full list after systematics have been implemented        
         systList = ['noweight','nominal','puWeightUp','puWeightDown','muEffWeightUp','muEffWeightDown','eleEffWeightUp','eleEffWeightDown','btagWeightUp','btagWeightDown','ISRUp', 'ISRDown', 'FSRUp', 'FSRDown', 'PDFUp', 'PDFDown', 'Q2ScaleUp', 'Q2ScaleDown']
-        systList = []
-        if self.isMC:
-            if self.jetSyst == 'nominal':
-                systList = ['nominal','muEffWeightUp','muEffWeightDown','eleEffWeightUp','eleEffWeightDown','ISRUp', 'ISRDown', 'FSRUp', 'FSRDown', 'PDFUp', 'PDFDown', 'Q2ScaleUp', 'Q2ScaleDown','puWeightUp','puWeightDown','btagWeightUp','btagWeightDown']
-        #        systList = ["nominal"]
-            else:
-                systList=[self.jetSyst]
-        else:
+        if not  self.jetSyst == 'nominal':
+            systList=[self.jetSyst]
+        if not self.isMC:
             systList = ["noweight"]
 
         #Fill temp hist for testing purposes
@@ -784,7 +778,7 @@ class TTGammaProcessor(processor.ProcessorABC):
                 #    fill photon_chIso histogram, using the loosePhotons array (photons passing all cuts, except the charged hadron isolation cuts)
                 output['photon_chIso'].fill(dataset=dataset,
                                             chIso=ak.flatten(loosePhoton.chIso[:,:1][phoselLoose]),
-                                            category=phoCategory[phoselLoose],
+                                            category=phoCategoryLoose[phoselLoose],
                                             lepFlavor=lepton,
                                             systematic=syst,
                                             weight=evtWeight[phoselLoose])
@@ -801,11 +795,23 @@ class TTGammaProcessor(processor.ProcessorABC):
             # 3. GET HISTOGRAM EVENT SELECTION
             #  use the selection.all() method to select events passing the eleSel or muSel selection, 
             # and the 3-jet 0-btag selection, and have exactly one photon
-      
+            phosel_e = selection.all(*('eleSel', "jetSel", 'onePho') )
+            phosel_mu = selection.all(*('muSel', "jetSel", 'onePho') )
             phosel_3j0t_e = selection.all(*('eleSel', "jetSel_3j0t", 'onePho') )
             phosel_3j0t_mu = selection.all(*('muSel', "jetSel_3j0t", 'onePho') )
             
             #Fill the photon_lepton_mass histogram for events passing phosel_3j0t_e and phosel_3j0t_mu
+            output['photon_lepton_mass'].fill(dataset=dataset,
+                                              mass=ak.flatten(egammaMass[phosel_e]),
+                                              category=phoCategory[phosel_e],
+                                              lepFlavor='electron',
+                                              systematic=syst,weight=evtWeight[phosel_e])
+            output['photon_lepton_mass'].fill(dataset=dataset,
+                                              mass=ak.flatten(mugammaMass[phosel_mu]),
+                                              category=phoCategory[phosel_mu],
+                                              lepFlavor='muon',
+                                              systematic=syst,
+                                              weight=evtWeight[phosel_mu])
             output['photon_lepton_mass_3j0t'].fill(dataset=dataset,
                                                    mass=ak.flatten(egammaMass[phosel_3j0t_e]),
                                                    category=phoCategory[phosel_3j0t_e],
